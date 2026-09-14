@@ -291,7 +291,7 @@ jobs:
               for COLOR in blue green; do
                 PORT=$( [ "$COLOR" = "blue" ] && echo "8081" || echo "8082" )
                 printf '  gateway-%s:\n' "$COLOR"
-                printf '    image: ghcr.io/final-project-gilmok/gateway-repo:${GATEWAY_TAG:-latest}\n'
+                printf '    image: ghcr.io/gilmokhub/gateway:${GATEWAY_TAG:-latest}\n'
                 printf '    container_name: gateway-%s\n' "$COLOR"
                 printf '    ports:\n'
                 printf '      - "%s:8080"\n' "$PORT"
@@ -320,7 +320,7 @@ jobs:
               done
 
               printf '  api-server:\n'
-              printf '    image: ghcr.io/final-project-gilmok/api-repo:${API_TAG:-latest}\n'
+              printf '    image: ghcr.io/gilmokhub/api:${API_TAG:-latest}\n'
               printf '    container_name: api-server\n'
               printf '    ports:\n'
               printf '      - "8083:8080"\n'
@@ -346,7 +346,7 @@ jobs:
               printf '      start_period: 360s\n\n'
 
               printf '  auth-server:\n'
-              printf '    image: ghcr.io/final-project-gilmok/auth-repo:${AUTH_TAG:-latest}\n'
+              printf '    image: ghcr.io/gilmokhub/auth:${AUTH_TAG:-latest}\n'
               printf '    container_name: auth-server\n'
               printf '    ports:\n'
               printf '      - "9000:9000"\n'
@@ -369,7 +369,7 @@ jobs:
               printf '      start_period: 90s\n\n'
 
               printf '  frontend:\n'
-              printf '    image: ghcr.io/final-project-gilmok/api-repo/frontend:${FRONTEND_TAG:-latest-%s}\n' "$DEPLOY_TARGET"
+              printf '    image: ghcr.io/gilmokhub/frontend:${FRONTEND_TAG:-latest-%s}\n' "$DEPLOY_TARGET"
               printf '    container_name: frontend\n'
               printf '    expose:\n'
               printf '      - "8080"\n'
