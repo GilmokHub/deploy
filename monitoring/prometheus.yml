@@ -15,10 +15,20 @@ scrape_configs:
 #      # cAdvisor는 이미 위에서 정의된 8082 포트를 사용
 #      - targets: ['host.docker.internal:8082']
 
-  # [중요] 스프링 부트 앱 모니터링
-  - job_name: 'spring-actuator'
+  # [1] 길목 대기열 플랫폼 백엔드 (:8082, context-path: /gilmok-platform)
+  - job_name: 'platform-backend'
+    metrics_path: '/gilmok-platform/actuator/prometheus'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['host.docker.internal:8082']
+        labels:
+          application: 'platform-backend'
+
+  # [2] 고객사 데모 백엔드 (:8081)
+  - job_name: 'demo-backend'
     metrics_path: '/actuator/prometheus'
     scrape_interval: 5s
     static_configs:
-      # 로컬에서 돌릴때 본인의 아이피주소로 변경하고 테스트하기
-      - targets: ['host.docker.internal:8080', 'host.docker.internal:8081', 'host.docker.internal:9000']
+      - targets: ['host.docker.internal:8081']
+        labels:
+          application: 'demo-backend'
