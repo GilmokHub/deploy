@@ -26,7 +26,7 @@ scrape_configs:
 
   # [2] 고객사 데모 백엔드 (:8081)
   - job_name: 'demo-backend'
-    metrics_path: '/actuator/prometheus'
+    metrics_path: '/gilmok-demo/actuator/prometheus'
     scrape_interval: 5s
     static_configs:
       - targets: ['host.docker.internal:8081']
