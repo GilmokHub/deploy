@@ -31,48 +31,15 @@ jobs:
         env:
           GRAFANA_PASSWORD: ${{ secrets.GRAFANA_PASSWORD }}
           GRAFANA_DOMAIN: ${{ secrets.GRAFANA_DOMAIN }}
+          APP_SERVER_IP: ${{ secrets.OCI_PLATFORM_HOST }}
         with:
           host: ${{ secrets.MONITORING_HOST }}
           username: ${{ secrets.MONITORING_USERNAME }}
           key: ${{ secrets.MONITORING_KEY }}
           timeout: 180s
-          envs: GRAFANA_PASSWORD,GRAFANA_DOMAIN
+          envs: GRAFANA_PASSWORD,GRAFANA_DOMAIN,APP_SERVER_IP
           script: |
-            set -euo pipefail
-
             cd ~/monitoring
-
-            if command -v docker-compose &> /dev/null; then
-              DOCKER_COMPOSE="docker-compose"
-            else
-              DOCKER_COMPOSE="docker compose"
-            fi
-
-            echo "🌐 Ensuring docker network 'monitoring-network' exists..."
-            if ! sudo docker network ls --format '{{.Name}}' | grep -wq "^monitoring-network$"; then
-              sudo docker network create monitoring-network
-            fi
-
-            umask 077
-            printf '%s\n' "GRAFANA_PASSWORD=${GRAFANA_PASSWORD}" > .env
-            printf '%s\n' "GRAFANA_DOMAIN=${GRAFANA_DOMAIN}" >> .env
-            printf '%s\n' "APP_SERVER_IP=146.56.104.192" >> .env
-            chmod 600 .env
-
-            echo "📊 Starting monitoring stack..."
-            sudo $DOCKER_COMPOSE -f docker-compose.monitoring.prod.yml pull
-            sudo $DOCKER_COMPOSE -f docker-compose.monitoring.prod.yml up -d --remove-orphans --force-recreate
-
-            echo "Waiting for services to be healthy..."
-            sleep 10
-
-            for SVC in prometheus grafana loki promtail; do
-              STATUS=$(sudo docker inspect --format='{{.State.Status}}' "$SVC" 2>/dev/null || echo "not found")
-              if [ "$STATUS" = "running" ]; then
-                echo "✅ $SVC is running"
-              else
-                echo "⚠️  $SVC status: $STATUS"
-              fi
-            done
-
-            echo "✨ Monitoring Deploy Done!"
+            sudo docker compose -f docker-compose.monitoring.prod.yml pull
+            sudo docker compose -f docker-compose.monitoring.prod.yml up -d --remove-orphans
+            sudo docker compose -f docker-compose.monitoring.prod.yml ps

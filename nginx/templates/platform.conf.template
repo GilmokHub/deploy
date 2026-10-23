@@ -1,0 +1,79 @@
+upstream platform_backend {
+    server platform-backend:8080;
+}
+
+upstream platform_frontend {
+    server platform-frontend:8080;
+}
+
+upstream platform_watchtower {
+    server watchtower:8080;
+}
+
+# HTTP (80) -> HTTPS (443) 301 리다이렉트 & ACME Challenge
+server {
+    listen 80;
+    server_name ${PLATFORM_DOMAIN} localhost;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+# HTTPS (443) 보안 서버
+server {
+    listen 443 ssl;
+    server_name ${PLATFORM_DOMAIN} localhost;
+
+    ssl_certificate /etc/letsencrypt/live/${PLATFORM_DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${PLATFORM_DOMAIN}/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    # Watchtower 웹훅 신호 프록시
+    location /watchtower/ {
+        proxy_pass http://platform_watchtower/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    # 백엔드 context-path (/gilmok-platform/)
+    location /gilmok-platform/ {
+        proxy_pass http://platform_backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    # 헬스체크 공개 엔드포인트
+    location = /gilmok-platform/actuator/health {
+        proxy_pass http://platform_backend;
+        proxy_set_header Host $host;
+    }
+
+    # 민감 Actuator 사설망 제한
+    location /gilmok-platform/actuator/ {
+        allow 10.0.0.0/16;
+        allow 127.0.0.1;
+        deny all;
+        proxy_pass http://platform_backend;
+        proxy_set_header Host $host;
+    }
+
+    # 프론트엔드 SPA 기본 서빙
+    location / {
+        proxy_pass http://platform_frontend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
