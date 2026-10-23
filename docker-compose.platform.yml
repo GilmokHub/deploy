@@ -66,6 +66,7 @@ services:
       - MYSQL_DATABASE=gilmok_platform_db
     volumes:
       - mysql-data:/var/lib/mysql
+      - ./mysql-init/platform:/docker-entrypoint-initdb.d:ro
     networks:
       - platform-network
 

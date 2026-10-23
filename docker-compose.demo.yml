@@ -64,6 +64,7 @@ services:
       - MYSQL_DATABASE=demo_ticketing_db
     volumes:
       - mysql-data:/var/lib/mysql
+      - ./mysql-init/demo:/docker-entrypoint-initdb.d:ro
     networks:
       - demo-network
 
