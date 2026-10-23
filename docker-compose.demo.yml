@@ -8,8 +8,11 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    environment:
+      - DEMO_DOMAIN=${DEMO_DOMAIN:?DEMO_DOMAIN_is_required_in_env}
+      - NGINX_ENVSUBST_FILTER=DEMO_DOMAIN
     volumes:
-      - ./nginx/demo.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/templates/demo.conf.template:/etc/nginx/templates/default.conf.template:ro
       - ./certbot/conf:/etc/letsencrypt:ro
       - ./certbot/www:/var/www/certbot:ro
     networks:

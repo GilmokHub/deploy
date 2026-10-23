@@ -6,20 +6,18 @@ scrape_configs:
     static_configs:
       - targets: ['prometheus:9090']
 
-  - job_name: 'spring-actuator'
-    metrics_path: '/actuator/prometheus'
+  - job_name: 'platform-actuator'
+    metrics_path: '/gilmok-platform/actuator/prometheus'
     scrape_interval: 15s
     static_configs:
-      - targets: [ '146.56.104.192:8081' ]  # gateway-blue (포트 매핑 필요)
+      - targets: ['10.0.0.250:80']
         labels:
-          service: 'gateway-blue'
-      - targets: [ '146.56.104.192:8082' ]  # gateway-green
-        labels:
-          service: 'gateway-green'
-      - targets: [ '146.56.104.192:8083' ]  # api-server
-        labels:
-          service: 'api-server'
-      - targets: [ '146.56.104.192:9000' ]  # auth-server
-        labels:
-          service: 'auth-server'
+          service: 'platform-backend'
 
+  - job_name: 'demo-actuator'
+    metrics_path: '/gilmok-demo/actuator/prometheus'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['10.0.0.234:80']
+        labels:
+          service: 'demo-backend'

@@ -3,14 +3,19 @@ set -e
 
 TARGET=${1:-platform}
 
+# .env 파일 자동 로드
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | xargs)
+fi
+
 if [ "$TARGET" == "platform" ]; then
-    DOMAIN="gilmok.duckdns.org"
+    DOMAIN="${PLATFORM_DOMAIN:?오류: .env 파일에 PLATFORM_DOMAIN이 설정되지 않았습니다.}"
     COMPOSE_FILE="docker-compose.platform.yml"
 elif [ "$TARGET" == "demo" ]; then
-    DOMAIN="gilmok-demo.duckdns.org"
+    DOMAIN="${DEMO_DOMAIN:?오류: .env 파일에 DEMO_DOMAIN이 설정되지 않았습니다.}"
     COMPOSE_FILE="docker-compose.demo.yml"
 else
-    echo "Usage: ./init-ssl.sh [platform|demo]"
+    echo "사용법: ./init-ssl.sh [platform|demo]"
     exit 1
 fi
 
@@ -42,4 +47,4 @@ docker run --rm \
 echo "=== [4/4] Nginx SSL 적용 및 리로드 ==="
 docker compose -f $COMPOSE_FILE exec nginx nginx -s reload
 
-echo "✅ [성공] https://$DOMAIN HTTPS 보안 접속이 활성화되었습니다!"
+echo "[성공] https://$DOMAIN HTTPS 보안 접속이 활성화되었습니다!"
