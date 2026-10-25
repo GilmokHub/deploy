@@ -34,6 +34,7 @@ services:
       - REDIS_URL=redis://redis:6379
       - SPRING_DATA_REDIS_SSL_ENABLED=false
       - JWT_SECRET=${JWT_SECRET}
+      - GILMOK_ADMISSION_JWKS_URI=${GILMOK_ADMISSION_JWKS_URI}
       - JAVA_TOOL_OPTIONS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
     networks:
       - demo-network
