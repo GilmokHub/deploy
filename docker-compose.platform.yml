@@ -40,6 +40,7 @@ services:
       - PLATFORM_ADMIN_KEY_MASTER=${PLATFORM_ADMIN_KEY_MASTER}
       - PLATFORM_ADMIN_KEY_DEMO=${PLATFORM_ADMIN_KEY_DEMO}
       - PROMETHEUS_URL=${PROMETHEUS_URL}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=${SPRING_JPA_HIBERNATE_DDL_AUTO}
       - JAVA_TOOL_OPTIONS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
     networks:
       - platform-network
@@ -73,7 +74,6 @@ services:
       - MYSQL_DATABASE=gilmok_platform_db
     volumes:
       - mysql-data:/var/lib/mysql
-      - ./mysql-init/platform:/docker-entrypoint-initdb.d:ro
     networks:
       - platform-network
 
