@@ -19,10 +19,35 @@ jobs:
   notify-watchtower:
     runs-on: ubuntu-latest
     steps:
+      - name: Resolve Target Config
+        id: config
+        env:
+          SERVICE_NAME: ${{ github.event.client_payload.service_name || inputs.service_name }}
+          PLATFORM_URL: ${{ secrets.OCI_PLATFORM_URL }}
+          DEMO_URL: ${{ secrets.OCI_DEMO_URL }}
+        run: |
+          echo "service_name=${SERVICE_NAME}" >> "$GITHUB_OUTPUT"
+
+          if [[ "${SERVICE_NAME}" == platform* ]]; then
+            echo "target_url=${PLATFORM_URL}" >> "$GITHUB_OUTPUT"
+            if [[ "${SERVICE_NAME}" == "platform-backend" ]]; then
+              echo "health_path=/gilmok-platform/actuator/health" >> "$GITHUB_OUTPUT"
+            else
+              echo "health_path=/" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "target_url=${DEMO_URL}" >> "$GITHUB_OUTPUT"
+            if [[ "${SERVICE_NAME}" == "demo-backend" ]]; then
+              echo "health_path=/gilmok-demo/actuator/health" >> "$GITHUB_OUTPUT"
+            else
+              echo "health_path=/" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
       - name: Send Webhook to Watchtower
         uses: fjogeleit/http-request-action@v1
         with:
-          url: '${{ startsWith(github.event.client_payload.service_name || inputs.service_name, "platform") && secrets.OCI_PLATFORM_URL || secrets.OCI_DEMO_URL }}/watchtower/v1/update?containers=${{ github.event.client_payload.service_name || inputs.service_name }}'
+          url: '${{ steps.config.outputs.target_url }}/watchtower/v1/update?containers=${{ steps.config.outputs.service_name }}'
           method: 'GET'
           bearerToken: '${{ secrets.WATCHTOWER_TOKEN }}'
           timeout: '180000'
@@ -30,7 +55,7 @@ jobs:
       - name: Verify Service Health Check
         uses: fjogeleit/http-request-action@v1
         with:
-          url: '${{ (startsWith(github.event.client_payload.service_name || inputs.service_name, "platform") && secrets.OCI_PLATFORM_URL || secrets.OCI_DEMO_URL) }}${{ (github.event.client_payload.service_name || inputs.service_name) == "platform-backend" && "/gilmok-platform/actuator/health" || ((github.event.client_payload.service_name || inputs.service_name) == "demo-backend" && "/gilmok-demo/actuator/health" || "/") }}'
+          url: '${{ steps.config.outputs.target_url }}${{ steps.config.outputs.health_path }}'
           method: 'GET'
           retry: 6
           retryWait: 10000
